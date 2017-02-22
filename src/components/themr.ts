@@ -47,7 +47,7 @@ export function themr(identifier: string | number | symbol,
                       localTheme?: TReactCSSThemrTheme,
                       options: Partial<IThemrOptions> = {}) {
 
-  return <P extends TThemedProps, S>(Target: TComponentClass<P, S> | React.SFC<P>): TComponentClass<P, S> => {
+  return <P extends TThemedProps, S>(Target: TComponentClass<P, S>): TComponentClass<P, S> => {
     const mergedOptions: IThemrOptions = { ...DEFAULT_OPTIONS, ...options }
     const { composeTheme } = mergedOptions
     validateComposeOption(composeTheme)

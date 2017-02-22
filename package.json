@@ -25,7 +25,10 @@
   ],
   "dependencies": {},
   "devDependencies": {
+    "@types/jest": "^18.1.1",
     "@types/react": "~15.0.4",
+    "@types/react-addons-test-utils": "^0.14.17",
+    "@types/react-dom": "^0.14.23",
     "babel-cli": "^6.7.7",
     "babel-core": "^6.18.0",
     "babel-eslint": "^7.1.1",
@@ -37,15 +40,13 @@
     "eslint-config-rackt": "^1.1.1",
     "eslint-plugin-babel": "^4.0.0",
     "eslint-plugin-react": "^6.8.0",
-    "expect": "^1.18.0",
     "fbjs": "^0.8.4",
+    "jest-cli": "^19.0.1",
     "jsdom": "^9.8.3",
-    "mocha": "^3.2.0",
     "react": "^15.0.1",
     "react-addons-test-utils": "^15.0.1",
     "react-dom": "^15.3.2",
     "rimraf": "^2.5.2",
-    "sinon": "^1.17.6",
     "tslib": "^1.6.0",
     "tslint": "^4.4.2",
     "typescript": "~2.1.6"
@@ -60,11 +61,25 @@
     "lint": "eslint src test",
     "tslint": "tslint './src/**/*.ts' './src/**/*.tsx' './test/**/*.ts'",
     "prepublish": "rimraf lib && npm run build",
-    "test": "mocha --compilers js:babel-core/register --recursive --reporter spec --require ./test/setup.js",
+    "test": "mocha --compilers ts:typescript --recursive --reporter spec --require ./test/setup.js",
     "test:watch": "npm test -- --watch"
   },
   "license": "MIT",
   "peerDependencies": {
     "react": "^0.14.0 || ^15.0.0-0"
+  },
+  "jest": {
+    "timers": "fake",
+    "moduleFileExtensions": [
+      "ts",
+      "tsx"
+    ],
+    "testPathDirs": [
+      "<rootDir>/test"
+    ],
+    "transform": {
+      "^.+\\.(ts|tsx)$": "<rootDir>/scripts/jest-ts-preprocessor.js"
+    },
+    "testRegex": "/__tests__/.*\\.(ts|tsx|js|jsx)$"
   }
 }

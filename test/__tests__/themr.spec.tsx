@@ -1,20 +1,24 @@
-import expect from 'expect'
-import React, { Children, PropTypes, Component } from 'react'
-import TestUtils from 'react-addons-test-utils'
-import sinon from 'sinon'
+import * as React from 'react'
+import * as TestUtils from 'react-addons-test-utils'
 import { render } from 'react-dom'
 import shallowEqual from 'fbjs/lib/shallowEqual'
-import { themr, themeable } from '../../src_old/index'
+import { themr, themeable } from '../../src/index'
+import Children = React.Children
+import PropTypes = React.PropTypes
+import Component = React.Component
+import ValidationMap = React.ValidationMap;
 
 describe('Themr decorator function', () => {
-  class Passthrough extends Component {
+  class Passthrough extends Component<any, any> {
+    private rootNode: any
+
     render() {
       const { theme, ...props } = this.props //eslint-disable-line no-unused-vars
-      return <div ref={(node) => { this.rootNode = node }} {...props} />
+      return <div ref={(node: any) => { this.rootNode = node }} {...props} />
     }
   }
 
-  class ProviderMock extends Component {
+  class ProviderMock extends Component<any, any> {
     static childContextTypes = {
       themr: PropTypes.object.isRequired
     }
@@ -32,19 +36,19 @@ describe('Themr decorator function', () => {
     const theme = { Container: { foo: 'foo_1234' } }
 
     @themr('Container')
-    class Container extends Component {
-      render() {
+    class Container extends Component<any, any> {
+      render(): any {
         return <Passthrough {...this.props} />
       }
     }
 
-    const tree = TestUtils.renderIntoDocument(
+    const tree: any = TestUtils.renderIntoDocument(
       <ProviderMock theme={theme}>
         <Container />
       </ProviderMock>
     )
 
-    const container = TestUtils.findRenderedComponentWithType(tree, Container)
+    const container = TestUtils.findRenderedComponentWithType(tree as any, Container)
     expect(container.context.themr.theme).toBe(theme)
   })
 
@@ -53,19 +57,19 @@ describe('Themr decorator function', () => {
     const theme = { Container: containerTheme }
 
     @themr('Container')
-    class Container extends Component {
-      render() {
+    class Container extends Component<any, any> {
+      render(): any {
         return <Passthrough {...this.props} />
       }
     }
 
-    const tree = TestUtils.renderIntoDocument(
+    const tree: any = TestUtils.renderIntoDocument(
       <ProviderMock theme={theme}>
         <Container />
       </ProviderMock>
     )
 
-    const stub = TestUtils.findRenderedComponentWithType(tree, Passthrough)
+    const stub = TestUtils.findRenderedComponentWithType(tree as any, Passthrough)
     expect(stub.props.theme).toEqual(containerTheme)
   })
 
@@ -76,15 +80,15 @@ describe('Themr decorator function', () => {
     const theme = { Container: containerTheme }
 
     @themr('Container', containerThemeLocal)
-    class Container extends Component {
-      render() {
+    class Container extends Component<any, any> {
+      render(): any {
         return <Passthrough {...this.props} />
       }
     }
 
-    const tree = TestUtils.renderIntoDocument(
+    const tree: any = TestUtils.renderIntoDocument(
       <ProviderMock theme={theme}>
-        <Container theme={containerThemeProps} />
+        <Container theme={containerThemeProps}/>
       </ProviderMock>
     )
 
@@ -99,13 +103,13 @@ describe('Themr decorator function', () => {
     const theme = { Container: containerTheme }
 
     @themr('Container', containerThemeLocal, { composeTheme: false })
-    class Container extends Component {
-      render() {
+    class Container extends Component<any, any> {
+      render(): any {
         return <Passthrough {...this.props} />
       }
     }
 
-    const tree = TestUtils.renderIntoDocument(
+    const tree: any = TestUtils.renderIntoDocument(
       <ProviderMock theme={theme}>
         <Container />
       </ProviderMock>
@@ -121,15 +125,15 @@ describe('Themr decorator function', () => {
     const theme = { Container: containerTheme }
 
     @themr('Container')
-    class Container extends Component {
-      render() {
+    class Container extends Component<any, any> {
+      render(): any {
         return <Passthrough {...this.props} />
       }
     }
 
-    const tree = TestUtils.renderIntoDocument(
+    const tree: any = TestUtils.renderIntoDocument(
       <ProviderMock theme={theme}>
-        <Container theme={containerTheme2} />
+        <Container theme={containerTheme2}/>
       </ProviderMock>
     )
 
@@ -143,16 +147,16 @@ describe('Themr decorator function', () => {
     const containerTheme2 = { foo: 'foo_567' }
     const theme = { Container: containerTheme }
 
-    @themr('Container', null, { composeTheme: 'softly' })
-    class Container extends Component {
-      render() {
+    @themr('Container', undefined, { composeTheme: 'softly' })
+    class Container extends Component<any, any> {
+      render(): any {
         return <Passthrough {...this.props} />
       }
     }
 
-    const tree = TestUtils.renderIntoDocument(
+    const tree: any = TestUtils.renderIntoDocument(
       <ProviderMock theme={theme}>
-        <Container theme={containerTheme2} />
+        <Container theme={containerTheme2}/>
       </ProviderMock>
     )
 
@@ -166,16 +170,16 @@ describe('Themr decorator function', () => {
     const containerTheme2 = { foo: 'foo_567' }
     const theme = { Container: containerTheme }
 
-    @themr('Container', null, { composeTheme: false })
-    class Container extends Component {
-      render() {
+    @themr('Container', undefined, { composeTheme: false })
+    class Container extends Component<any, any> {
+      render(): any {
         return <Passthrough {...this.props} />
       }
     }
 
-    const tree = TestUtils.renderIntoDocument(
+    const tree: any = TestUtils.renderIntoDocument(
       <ProviderMock theme={theme}>
-        <Container theme={containerTheme2} />
+        <Container theme={containerTheme2}/>
       </ProviderMock>
     )
 
@@ -189,15 +193,15 @@ describe('Themr decorator function', () => {
     const theme = { Container: containerTheme }
 
     @themr('Container')
-    class Container extends Component {
-      render() {
+    class Container extends Component<any, any> {
+      render(): any {
         return <Passthrough {...this.props} />
       }
     }
 
-    const tree = TestUtils.renderIntoDocument(
+    const tree: any = TestUtils.renderIntoDocument(
       <ProviderMock theme={theme}>
-        <Container theme={containerTheme2} composeTheme="deeply" />
+        <Container theme={containerTheme2} composeTheme="deeply"/>
       </ProviderMock>
     )
 
@@ -212,15 +216,15 @@ describe('Themr decorator function', () => {
     const theme = { Container: containerTheme }
 
     @themr('Container')
-    class Container extends Component {
-      render() {
+    class Container extends Component<any, any> {
+      render(): any {
         return <Passthrough {...this.props} />
       }
     }
 
-    const tree = TestUtils.renderIntoDocument(
+    const tree: any = TestUtils.renderIntoDocument(
       <ProviderMock theme={theme}>
-        <Container theme={containerTheme2} composeTheme="softly" />
+        <Container theme={containerTheme2} composeTheme="softly"/>
       </ProviderMock>
     )
 
@@ -235,15 +239,15 @@ describe('Themr decorator function', () => {
     const theme = { Container: containerTheme }
 
     @themr('Container')
-    class Container extends Component {
-      render() {
+    class Container extends Component<any, any> {
+      render(): any {
         return <Passthrough {...this.props} />
       }
     }
 
-    const tree = TestUtils.renderIntoDocument(
+    const tree: any = TestUtils.renderIntoDocument(
       <ProviderMock theme={theme}>
-        <Container theme={containerTheme2} composeTheme={false} />
+        <Container theme={containerTheme2} composeTheme={false}/>
       </ProviderMock>
     )
 
@@ -253,24 +257,24 @@ describe('Themr decorator function', () => {
 
   it('throws an error if an invalid composition option passed', () => {
     expect(() => {
-      @themr('Container', null, { composeTheme: 'foo' })
-      class Container extends Component { //eslint-disable-line no-unused-vars
-        render() {
+      @themr('Container', undefined, { composeTheme: 'foo' } as any)
+      class Container extends Component<any, any> { //eslint-disable-line no-unused-vars
+        render(): any {
           return <Passthrough {...this.props} />
         }
       }
-    }).toThrow(/composeTheme/)
+    }).toThrowError(/composeTheme/)
   })
 
   it('works properly when no theme is provided', () => {
     @themr('Container')
-    class Container extends Component {
-      render() {
+    class Container extends Component<any, any> {
+      render(): any {
         return <Passthrough {...this.props} />
       }
     }
 
-    const tree = TestUtils.renderIntoDocument(
+    const tree: any = TestUtils.renderIntoDocument(
       <Container />
     )
 
@@ -279,7 +283,7 @@ describe('Themr decorator function', () => {
   })
 
   it('gets the reference to a decorated component using innerRef prop', () => {
-    class Container extends Component {
+    class Container extends Component<any, any> {
       render() {
         return <Passthrough {...this.props} />
       }
@@ -287,7 +291,7 @@ describe('Themr decorator function', () => {
 
     const spy = sinon.stub()
     const ThemedContainer = themr('Container')(Container)
-    const tree = TestUtils.renderIntoDocument(<ThemedContainer innerRef={spy} />)
+    const tree: any = TestUtils.renderIntoDocument(<ThemedContainer innerRef={spy}/>)
     const stub = TestUtils.findRenderedComponentWithType(tree, Container)
     expect(spy.withArgs(stub).calledOnce).toBe(true)
   })
@@ -296,8 +300,8 @@ describe('Themr decorator function', () => {
     const theme = { Container: { foo: 'foo_1234' } }
 
     @themr('Container')
-    class Container extends Component {
-      render() {
+    class Container extends Component<any, any> {
+      render(): any {
         return <Passthrough {...this.props} />
       }
     }
@@ -306,7 +310,7 @@ describe('Themr decorator function', () => {
       <ProviderMock theme={theme}>
         <Container themeNamespace="container"/>
       </ProviderMock>
-    )).toThrow(/Invalid themeNamespace use in react-css-themr. themeNamespace prop should be used only with theme prop./)
+    )).toThrowError(/Invalid themeNamespace use in react-css-themr. themeNamespace prop should be used only with theme prop./)
   })
 
   it('when providing a themeNamespace prop composes a theme', () => {
@@ -316,15 +320,15 @@ describe('Themr decorator function', () => {
     const theme = { Container: containerTheme }
 
     @themr('Container', containerThemeLocal)
-    class Container extends Component {
-      render() {
+    class Container extends Component<any, any> {
+      render(): any {
         return <Passthrough {...this.props} />
       }
     }
 
-    const tree = TestUtils.renderIntoDocument(
+    const tree: any = TestUtils.renderIntoDocument(
       <ProviderMock theme={theme}>
-        <Container theme={containerThemeProps} themeNamespace="container" />
+        <Container theme={containerThemeProps} themeNamespace="container"/>
       </ProviderMock>
     )
 
@@ -341,9 +345,9 @@ describe('Themr decorator function', () => {
       foo: []
     }
     @themr('Foo')
-    class Foo extends Component {
-      static propTypes = propTypes;
-      static defaultProps = defaultProps;
+    class Foo extends Component<typeof defaultProps, any> {
+      static propTypes?: ValidationMap<any> = propTypes
+      static defaultProp = defaultProps
     }
     expect(Foo.propTypes.foo).toBe(propTypes.foo)
     expect(Foo.defaultProps.foo).toBe(defaultProps.foo)
@@ -359,7 +363,7 @@ describe('Themr decorator function', () => {
     const key = 'Foo'
 
     @themr(key, foo)
-    class Foo extends Component {
+    class Foo extends Component<any, any> {
       render() {
         return <Passthrough {...this.props} />
       }
@@ -367,7 +371,7 @@ describe('Themr decorator function', () => {
     const Bar = themr(key, bar)(Foo)
     expect(Bar).toBe(Foo)
 
-    const tree = TestUtils.renderIntoDocument(<Bar/>)
+    const tree: any = TestUtils.renderIntoDocument(<Bar/>)
 
     const stub = TestUtils.findRenderedComponentWithType(tree, Passthrough)
     expect(stub.props.theme).toEqual({
@@ -381,7 +385,7 @@ describe('Themr decorator function', () => {
     const div = document.createElement('div')
 
     @themr('Container')
-    class Container extends Component {
+    class Container extends Component<any, any> {
       shouldComponentUpdate(nextProps) {
         return !shallowEqual(nextProps, this.props)
       }
@@ -411,7 +415,7 @@ describe('Themr decorator function', () => {
       const div = document.createElement('div')
 
       @themr('Container')
-      class Container extends Component {
+      class Container extends Component<any, any> {
         shouldComponentUpdate(nextProps) {
           return !shallowEqual(nextProps, this.props)
         }
@@ -425,19 +429,19 @@ describe('Themr decorator function', () => {
       const themeNamespace = 'nsA'
 
       render(
-        <Container theme={themeA} />,
+        <Container theme={themeA}/>,
         div
       )
 
       render(
-        <Container theme={themeB} />,
+        <Container theme={themeB}/>,
         div
       )
 
       expect(spy.calledTwice).toBe(true)
 
       render(
-        <Container theme={themeB} themeNamespace={themeNamespace} />,
+        <Container theme={themeB} themeNamespace={themeNamespace}/>,
         div
       )
 
@@ -445,14 +449,14 @@ describe('Themr decorator function', () => {
 
 
       render(
-        <Container theme={themeB} themeNamespace={themeNamespace} composeTheme={'deeply'} />,
+        <Container theme={themeB} themeNamespace={themeNamespace} composeTheme={'deeply'}/>,
         div
       )
 
       expect(spy.calledThrice).toBe(true)
 
       render(
-        <Container theme={themeB} themeNamespace={themeNamespace} composeTheme={'softly'} />,
+        <Container theme={themeB} themeNamespace={themeNamespace} composeTheme={'softly'}/>,
         div
       )
 
@@ -462,13 +466,13 @@ describe('Themr decorator function', () => {
 
   it('should not pass internal themr props to WrappedComponent', () => {
     @themr('Container')
-    class Container extends Component {
+    class Container extends Component<any, any> {
       render() {
         return <Passthrough {...this.props} />
       }
     }
 
-    const tree = TestUtils.renderIntoDocument(
+    const tree: any = TestUtils.renderIntoDocument(
       <Container/>
     )
 
@@ -572,16 +576,14 @@ describe('themeable function', () => {
       test: 'test'
     }
     const themeB = {
-      test: {
-      }
+      test: {}
     }
     expect(() => themeable(themeA, themeB)).toThrow()
   })
 
   it('should throw when merging non-objects with objects', () => {
     const themeA = {
-      test: {
-      }
+      test: {}
     }
     const themeB = {
       test: 'test'

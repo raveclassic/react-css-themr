@@ -1,17 +1,20 @@
-import expect from 'expect'
-import React, { PropTypes, Component } from 'react'
-import TestUtils from 'react-addons-test-utils'
-import { ThemeProvider } from '../../src_old/index'
+import * as React from 'react'
+import * as TestUtils from 'react-addons-test-utils'
+import { ThemeProvider } from '../../src/index'
+import Component = React.Component
+import PropTypes = React.PropTypes
 
 describe('ThemeProvider', () => {
-  class Child extends Component {
-    render() {
-      return <div />
+  class Child extends Component<any, any> {
+    static contextTypes = {
+      themr: PropTypes.object.isRequired
     }
-  }
 
-  Child.contextTypes = {
-    themr: PropTypes.object.isRequired
+    render() {
+      return (
+        <div/>
+      )
+    }
   }
 
   it('enforces a single child', () => {
@@ -19,7 +22,7 @@ describe('ThemeProvider', () => {
 
     // Ignore propTypes warnings
     const propTypes = ThemeProvider.propTypes
-    ThemeProvider.propTypes = {}
+    ThemeProvider[ 'propTypes' ] = {}
 
     try {
       expect(() => TestUtils.renderIntoDocument(
