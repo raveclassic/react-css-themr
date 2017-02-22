@@ -1,7 +1,7 @@
 import expect from 'expect'
 import React, { PropTypes, Component } from 'react'
 import TestUtils from 'react-addons-test-utils'
-import { ThemeProvider } from '../../src/index'
+import { ThemeProvider } from '../../src_old/index'
 
 describe('ThemeProvider', () => {
   class Child extends Component {

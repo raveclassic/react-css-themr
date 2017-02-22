@@ -4,7 +4,7 @@ import TestUtils from 'react-addons-test-utils'
 import sinon from 'sinon'
 import { render } from 'react-dom'
 import shallowEqual from 'fbjs/lib/shallowEqual'
-import { themr, themeable } from '../../src/index'
+import { themr, themeable } from '../../src_old/index'
 
 describe('Themr decorator function', () => {
   class Passthrough extends Component {

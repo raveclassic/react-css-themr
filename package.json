@@ -23,9 +23,7 @@
     "react-css-themr",
     "theming"
   ],
-  "dependencies": {
-    "invariant": "^2.2.1"
-  },
+  "dependencies": {},
   "devDependencies": {
     "@types/react": "~15.0.4",
     "babel-cli": "^6.7.7",
@@ -47,7 +45,10 @@
     "react-addons-test-utils": "^15.0.1",
     "react-dom": "^15.3.2",
     "rimraf": "^2.5.2",
-    "sinon": "^1.17.6"
+    "sinon": "^1.17.6",
+    "tslib": "^1.6.0",
+    "tslint": "^4.4.2",
+    "typescript": "~2.1.6"
   },
   "files": [
     "index.d.ts",
@@ -55,8 +56,9 @@
     "src"
   ],
   "scripts": {
-    "build": "babel src --out-dir lib",
+    "build": "tsc",
     "lint": "eslint src test",
+    "tslint": "tslint './src/**/*.ts' './src/**/*.tsx' './test/**/*.ts'",
     "prepublish": "rimraf lib && npm run build",
     "test": "mocha --compilers js:babel-core/register --recursive --reporter spec --require ./test/setup.js",
     "test:watch": "npm test -- --watch"
@@ -64,6 +66,5 @@
   "license": "MIT",
   "peerDependencies": {
     "react": "^0.14.0 || ^15.0.0-0"
-  },
-  "typings": "./index.d.ts"
+  }
 }
