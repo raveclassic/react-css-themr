@@ -2,21 +2,34 @@ import React, { Component } from 'react'
 import PropTypes from 'prop-types'
 import hoistNonReactStatics from 'hoist-non-react-statics'
 import invariant from 'invariant'
+import { TTheme } from '../utils/themr-shape'
 
-/**
- * @typedef {Object.<string, TReactCSSThemrTheme>} TReactCSSThemrTheme
- */
+export type TComposeTheme = 'deeply' | 'softly' | false
+export type TMapThemrProps<P> = (ownProps: P, theme: TTheme) => P & {
+  theme: TTheme
+}
+// type TTarget<P, S> = (new (props?: P, context?: any) => React.Component<P, S>) | React.SFC<P>
+type TThemrProps<P> = {
+  composeTheme?: TComposeTheme,
+  themeNamespace?: string,
+  theme?: TTheme,
+  innerRef?: Function,
+  mapThemrProps?: TMapThemrProps<P>
+}
+type TTarget<P extends TThemrProps<P>> = React.ComponentClass<P> | React.SFC<P>
+type TResult<P extends TThemrProps<P>> = React.ComponentClass<P & TThemrProps<P>>
 
-/**
- * @typedef {{}} TReactCSSThemrOptions
- * @property {String|Boolean} [composeTheme=COMPOSE_DEEPLY]
- */
+export type TIdentifier = string | number | symbol
+export type TThemrOptions<P> = {
+  composeTheme: TComposeTheme,
+  mapThemrProps: TMapThemrProps<P>
+}
 
 const COMPOSE_DEEPLY = 'deeply'
 const COMPOSE_SOFTLY = 'softly'
 const DONT_COMPOSE = false
 
-const DEFAULT_OPTIONS = {
+const DEFAULT_OPTIONS: TThemrOptions<{}> = {
   composeTheme: COMPOSE_DEEPLY,
   mapThemrProps: defaultMapThemrProps
 }
@@ -32,17 +45,29 @@ const THEMR_CONFIG = typeof Symbol !== 'undefined' ?
  * @param {{}} [options] - Themr options
  * @returns {function(ThemedComponent:Function):Function} - ThemedComponent
  */
-export default (componentName, localTheme, options = {}) => (ThemedComponent) => {
+export function themr<OP>(componentName: TIdentifier,
+                         localTheme: TTheme = {},
+                         options: Partial<TThemrOptions<OP>> = {}) {
+  return <P extends TThemrProps<P>>(Target: TTarget<P>): TResult<P> => {
+    // const {
+    // composeTheme: optionComposeTheme,
+    // mapThemrProps: optionMapThemrProps
+  // } = { ...DEFAULT_OPTIONS, ...options }
+  const mergedOptions = {
+    ...DEFAULT_OPTIONS,
+    ...options
+  }
   const {
-    composeTheme: optionComposeTheme,
-    mapThemrProps: optionMapThemrProps
-  } = { ...DEFAULT_OPTIONS, ...options }
-  validateComposeOption(optionComposeTheme)
+    composeTheme,
+    mapThemrProps
+  } = mergedOptions
 
-  let config = ThemedComponent[THEMR_CONFIG]
+  validateComposeOption(composeTheme)
+
+  let config = Target[THEMR_CONFIG]
   if (config && config.componentName === componentName) {
     config.localTheme = themeable(config.localTheme, localTheme)
-    return ThemedComponent
+    return Target as TResult<P>
   }
 
   config = {
@@ -50,18 +75,15 @@ export default (componentName, localTheme, options = {}) => (ThemedComponent) =>
     localTheme
   }
 
-  /**
-   * @property {{wrappedInstance: *}} refs
-   */
-  class Themed extends Component {
-    static displayName = `Themed${ThemedComponent.name}`;
+  class Themed extends Component<P, any> {
+    static displayName = `Themed${Target.name}`
 
     static contextTypes = {
       themr: PropTypes.object
     }
 
     static propTypes = {
-      ...ThemedComponent.propTypes,
+      ...(Target as any).propTypes,
       composeTheme: PropTypes.oneOf([ COMPOSE_DEEPLY, COMPOSE_SOFTLY, DONT_COMPOSE ]),
       innerRef: PropTypes.func,
       theme: PropTypes.object,
@@ -70,13 +92,15 @@ export default (componentName, localTheme, options = {}) => (ThemedComponent) =>
     }
 
     static defaultProps = {
-      ...ThemedComponent.defaultProps,
-      composeTheme: optionComposeTheme,
-      mapThemrProps: optionMapThemrProps
+      ...(Target as any).defaultProps,
+      composeTheme,
+      mapThemrProps
     }
 
-    constructor(...args) {
-      super(...args)
+    private theme_: TTheme
+
+    constructor(props: P, context?: any) {
+      super(props, context)
       this.theme_ = this.calcTheme(this.props)
     }
 
@@ -89,30 +113,33 @@ export default (componentName, localTheme, options = {}) => (ThemedComponent) =>
       return this.refs.wrappedInstance
     }
 
-    getNamespacedTheme(props) {
+    getNamespacedTheme(props: P): TTheme {
       const { themeNamespace, theme } = props
-      if (!themeNamespace) return theme
-      if (themeNamespace && !theme) throw new Error('Invalid themeNamespace use in react-css-themr. ' +
-        'themeNamespace prop should be used only with theme prop.')
-
-      return Object.keys(theme)
-        .filter(key => key.startsWith(themeNamespace))
-        .reduce((result, key) => ({ ...result, [removeNamespace(key, themeNamespace)]:  theme[key] }), {})
+      if (!themeNamespace || !theme) {
+        return theme || {}
+      } else if (themeNamespace && !theme) {
+        throw new Error('Invalid themeNamespace use in react-css-themr. ' +
+          'themeNamespace prop should be used only with theme prop.')
+      } else {
+        return Object.keys(theme)
+          .filter(key => key.startsWith(themeNamespace))
+          .reduce((result, key) => ({ ...result, [removeNamespace(key, themeNamespace)]: theme[ key ] }), {})
+      }
     }
 
-    getThemeNotComposed(props) {
+    getThemeNotComposed(props: P): TTheme {
       if (props.theme) return this.getNamespacedTheme(props)
       if (config.localTheme) return config.localTheme
       return this.getContextTheme()
     }
 
-    getContextTheme() {
+    getContextTheme(): TTheme {
       return this.context.themr
         ? this.context.themr.theme[config.componentName]
         : {}
     }
 
-    getTheme(props) {
+    getTheme(props: P): TTheme {
       return props.composeTheme === COMPOSE_SOFTLY
         ? {
           ...this.getContextTheme(),
@@ -125,14 +152,14 @@ export default (componentName, localTheme, options = {}) => (ThemedComponent) =>
         )
     }
 
-    calcTheme(props) {
+    calcTheme(props: P): TTheme {
       const { composeTheme } = props
       return composeTheme
         ? this.getTheme(props)
         : this.getThemeNotComposed(props)
     }
 
-    componentWillReceiveProps(nextProps) {
+    componentWillReceiveProps(nextProps: P) {
       if (
         nextProps.composeTheme !== this.props.composeTheme ||
         nextProps.theme !== this.props.theme ||
@@ -143,25 +170,29 @@ export default (componentName, localTheme, options = {}) => (ThemedComponent) =>
     }
 
     render() {
+      const map = this.props.mapThemrProps as TMapThemrProps<P>
       return React.createElement(
-        ThemedComponent,
-        this.props.mapThemrProps(this.props, this.theme_)
+        Target as React.ComponentClass<P>,
+        map(this.props, this.theme_)
       )
     }
   }
 
   Themed[THEMR_CONFIG] = config
 
-  return hoistNonReactStatics(Themed, ThemedComponent)
+  return hoistNonReactStatics(Themed, Target)
+  }
 }
+
+export default themr
 
 /**
  * Merges passed themes by concatenating string keys and processing nested themes
  *
- * @param {...TReactCSSThemrTheme} themes - Themes
- * @returns {TReactCSSThemrTheme} - Resulting theme
+ * @param themes - Themes
+ * @returns Resulting theme
  */
-export function themeable(...themes) {
+export function themeable(...themes: TTheme[]) {
   return themes.reduce((acc, theme) => merge(acc, theme), {})
 }
 
@@ -170,7 +201,7 @@ export function themeable(...themes) {
  * @param {TReactCSSThemrTheme} [mixin] - Mixin theme
  * @returns {TReactCSSThemrTheme} - resulting theme
  */
-function merge(original = {}, mixin = {}) {
+function merge(original: TTheme = {}, mixin: TTheme = {}): TTheme {
   //make a copy to avoid mutations of nested objects
   //also strip all functions injected by isomorphic-style-loader
   const result = Object.keys(original).reduce((acc, key) => {
@@ -193,7 +224,7 @@ function merge(original = {}, mixin = {}) {
         switch (typeof originalValue) {
           case 'object': {
             //exactly nested theme object - go recursive
-            result[key] = merge(originalValue, mixinValue)
+            result[key] = merge(originalValue, mixinValue as TTheme)
             break
           }
 
@@ -237,8 +268,8 @@ function merge(original = {}, mixin = {}) {
 
           default: {
             //finally we can merge
-            result[key] = originalValue.split(' ')
-              .concat(mixinValue.split(' '))
+            result[key] = (originalValue as string).split(' ')
+              .concat((mixinValue as string).split(' '))
               .filter((item, pos, self) => self.indexOf(item) === pos && item !== '')
               .join(' ')
             break
@@ -255,11 +286,10 @@ function merge(original = {}, mixin = {}) {
 /**
  * Validates compose option
  *
- * @param {String|Boolean} composeTheme - Compose them option
+ * @param composeTheme - Compose them option
  * @throws
- * @returns {undefined}
  */
-function validateComposeOption(composeTheme) {
+function validateComposeOption(composeTheme: TComposeTheme): void {
   if ([ COMPOSE_DEEPLY, COMPOSE_SOFTLY, DONT_COMPOSE ].indexOf(composeTheme) === -1) {
     throw new Error(
       `Invalid composeTheme option for react-css-themr. Valid composition options\
@@ -272,11 +302,11 @@ function validateComposeOption(composeTheme) {
 /**
  * Removes namespace from key
  *
- * @param {String} key - Key
- * @param {String} themeNamespace - Theme namespace
- * @returns {String} - Key
+ * @param key - Key
+ * @param themeNamespace - Theme namespace
+ * @returns Key
  */
-function removeNamespace(key, themeNamespace) {
+function removeNamespace(key: string, themeNamespace: string): string {
   const capitalized = key.substr(themeNamespace.length)
   return capitalized.slice(0, 1).toLowerCase() + capitalized.slice(1)
 }
@@ -289,7 +319,7 @@ function removeNamespace(key, themeNamespace) {
  * @param {Object} theme - Calculated then that should be passed down
  * @returns {Object} - Props that will be passed down to the decorated component
  */
-function defaultMapThemrProps(ownProps, theme) {
+function defaultMapThemrProps<T extends TTheme>(ownProps: any, theme: T): {theme: T} {
   const {
     composeTheme,   //eslint-disable-line no-unused-vars
     innerRef,
